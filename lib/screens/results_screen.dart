@@ -49,18 +49,43 @@ class ResultsScreen extends StatelessWidget {
 
             SizedBox(height: 20),
 
-            // Incorrect Questions Review
-            ExpansionTile(
-              title: Text(
-                'Incorrect Questions',
-                style: Theme.of(context).textTheme.titleLarge,
+            // Incorrect Questions Review with DataTable
+            Text(
+              'Incorrect Questions',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columns: [
+                  DataColumn(label: Text('Question')),
+                  DataColumn(label: Text('Correct Answer')),
+                ],
+                rows: incorrectQuestions.map((question) {
+                  return DataRow(cells: [
+                    DataCell(
+                      Container(
+                        width: 200, // Adjust width as needed
+                        child: Text(
+                          question.stem,
+                          softWrap: true,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        width: 150, // Adjust width as needed
+                        child: Text(
+                          question.answer.join(", "),
+                          softWrap: true,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ]);
+                }).toList(),
               ),
-              children: incorrectQuestions.map((question) {
-                return ListTile(
-                  title: Text(question.stem),
-                  subtitle: Text('Correct Answer: ${question.answer.join(", ")}'),
-                );
-              }).toList(),
             ),
 
             SizedBox(height: 20),
