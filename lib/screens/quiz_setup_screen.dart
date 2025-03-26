@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:question_app/screens/quiz_screen.dart';
 import 'package:question_app/service/quiz_service.dart';
 import 'package:question_app/model/quiz_model.dart';
@@ -21,7 +22,12 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
   late QuizService _quizService;
   late QuizModel _quizModel;
   bool _isLoading = true;
-  int _selectedQuestionCount = 5;
+
+  // Text editing controller for number of questions
+  final TextEditingController _questionCountController = TextEditingController();
+
+  // Form key for validation
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -40,10 +46,10 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
       setState(() {
         _quizModel = quizModel;
         _isLoading = false;
-        _selectedQuestionCount =
-        _quizModel.getQuestions().length > 5
-            ? 5
-            : _quizModel.getQuestions().length;
+
+        // Set default value to 5 or max available questions
+        int defaultQuestionCount = quizModel.getQuestions().length > 5 ? 5 : quizModel.getQuestions().length;
+        _questionCountController.text = defaultQuestionCount.toString();
       });
     } catch (e) {
       setState(() {
@@ -56,15 +62,19 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
   }
 
   void _startQuiz() {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => QuizScreen(
-              quizModel: _quizModel,
-              questionCount: _selectedQuestionCount,
-            )
-        )
-    );
+    // Validate the form before starting the quiz
+    if (_formKey.currentState!.validate()) {
+      int questionCount = int.parse(_questionCountController.text);
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => QuizScreen(
+                quizModel: _quizModel,
+                questionCount: questionCount,
+              )
+          )
+      );
+    }
   }
 
   @override
@@ -75,38 +85,61 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
           ? Center(child: CircularProgressIndicator())
           : Padding(
         padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Total Questions Available: ${_quizModel.getQuestions().length}',
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Select Number of Questions',
-              style: TextStyle(fontSize: 16),
-            ),
-            Slider(
-              value: _selectedQuestionCount.toDouble(),
-              min: 1,
-              max: _quizModel.getQuestions().length.toDouble(),
-              divisions: _quizModel.getQuestions().length - 1,
-              label: _selectedQuestionCount.toString(),
-              onChanged: (double value) {
-                setState(() {
-                  _selectedQuestionCount = value.toInt();
-                });
-              },
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _startQuiz,
-              child: Text('Start Quiz'),
-            ),
-          ],
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Total Questions Available: ${_quizModel.getQuestions().length}',
+                style: TextStyle(fontSize: 18),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Number of Questions',
+                style: TextStyle(fontSize: 16),
+              ),
+              TextFormField(
+                controller: _questionCountController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: InputDecoration(
+                  hintText: 'Enter number of questions',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter number of questions';
+                  }
+
+                  int? count = int.tryParse(value);
+                  if (count == null || count < 1) {
+                    return 'Please enter a valid number';
+                  }
+
+                  if (count > _quizModel.getQuestions().length) {
+                    return 'Cannot exceed total available questions (${_quizModel.getQuestions().length})';
+                  }
+
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _startQuiz,
+                child: Text('Start Quiz'),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    // Dispose of the controller when the widget is removed
+    _questionCountController.dispose();
+    super.dispose();
   }
 }
