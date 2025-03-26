@@ -19,7 +19,10 @@ abstract class Question {
 
   /// Fetch the image for this question if available
   Future<Image?> fetchImage() async {
-    if (figure == null) return null;
+    if (figure == null) {
+      print('DEBUG: No figure name provided for this question');
+      return null;
+    }
 
     try {
       final imageUrl = 'https://www.cs.utep.edu/cheon/cs4381/homework/quiz/figure.php?name=$figure';

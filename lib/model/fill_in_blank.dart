@@ -16,7 +16,7 @@ class FillInBlankQuestion extends Question {
     return FillInBlankQuestion(
         stem,
         answers,
-        figure: json['figure'] as String?
+        figure: json['figure'] as String? // Explicitly pass figure
     );
   }
 

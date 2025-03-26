@@ -14,10 +14,19 @@ class QuizModel {
       if (quizData.containsKey('questions')) {
         for (var q in quizData['questions']) {
           int type = q['type'];
+          // Explicitly pass the figure attribute
+          String? figure = q['figure'];
+
           if (type == 1) {
-            questions.add(MultipleChoiceQuestion.fromJson(q));
+            questions.add(MultipleChoiceQuestion.fromJson({
+              ...q,
+              'figure': figure
+            }));
           } else if (type == 2) {
-            questions.add(FillInBlankQuestion.fromJson(q));
+            questions.add(FillInBlankQuestion.fromJson({
+              ...q,
+              'figure': figure
+            }));
           }
         }
       }

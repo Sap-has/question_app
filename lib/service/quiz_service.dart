@@ -41,6 +41,25 @@ class QuizService {
       }
     }
 
+    // After dynamic quiz loading, specifically check quiz99
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl?user=$username&pin=$pin&quiz=quiz99'),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+
+        // Check if the response indicates a valid quiz
+        if (jsonResponse['response'] == true && jsonResponse.containsKey('quiz')) {
+          var quizData = [jsonResponse['quiz']];
+          quizModel.loadQuestionsFromJson(quizData);
+        }
+      }
+    } catch (e) {
+      print('Error fetching quiz99: $e');
+    }
+
     return quizModel;
   }
 }

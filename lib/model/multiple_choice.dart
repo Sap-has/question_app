@@ -34,7 +34,7 @@ class MultipleChoiceQuestion extends Question {
         stem,
         [correctAnswer],
         options,
-        figure: json['figure'] as String?
+        figure: json['figure'] as String? // Explicitly pass figure
     );
   }
 
